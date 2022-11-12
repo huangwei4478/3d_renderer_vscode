@@ -28,3 +28,11 @@ Development environment: using [VSCode](https://code.visualstudio.com/).
 ```bash
 make game
 ```
+
+## How to debug (using LLDB)
+
+```bash
+make debug
+```
+
+[LLDB Cheat Sheet](https://www.nesono.com/sites/default/files/lldb%20cheat%20sheet.pdf) 
