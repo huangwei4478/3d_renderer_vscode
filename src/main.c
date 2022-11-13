@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "display.h"
+#include "vector.h"
 
 void setup(void) {
 	color_buffer = (uint32_t *)malloc(SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(uint32_t));
