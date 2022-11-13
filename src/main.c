@@ -5,8 +5,8 @@
 #include <stdbool.h>
 
 //Screen dimension constants
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
+int SCREEN_WIDTH = 640;
+int SCREEN_HEIGHT = 480;
 
 bool is_running = false;
 SDL_Window* window = NULL;
@@ -21,12 +21,18 @@ bool initialize_window(void) {
 		return false;
 	}
 
+	SDL_DisplayMode displayMode;
+	SDL_GetCurrentDisplayMode(0, &displayMode);
+
+	SCREEN_WIDTH = displayMode.w;
+	SCREEN_HEIGHT = displayMode.h;
+
 	window = SDL_CreateWindow("3D Graphics Programming", 
 								   SDL_WINDOWPOS_CENTERED, 
 								   SDL_WINDOWPOS_CENTERED,
 								   SCREEN_WIDTH,
 								   SCREEN_HEIGHT,
-								   0);
+								   SDL_WINDOW_BORDERLESS);
 
 	if (window == NULL) {
 		fprintf(stderr, "Error creating SDL window.\n");
@@ -38,6 +44,9 @@ bool initialize_window(void) {
 		fprintf(stderr, "Error creating SDL renderer.\n");
 		return false;
 	}
+
+	SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
+
 	return true;
 }
 
@@ -76,6 +85,21 @@ void update(void) {
 	// TODO:
 }
 
+void draw_grid(void) {
+	// Exercise: Draw a background grid that fills the entire window
+	// Lines should be rendered at every row/col multiple of 10.
+
+	const int grid_wh = 10;
+
+	for (int y = 0; y < SCREEN_HEIGHT; y++) {
+		for (int x = 0; x < SCREEN_WIDTH; x++) {
+			if (x % grid_wh == 0 || y % grid_wh == 0) {
+				color_buffer[y * SCREEN_WIDTH + x] = 0xFF000000;
+			}
+		}
+	}
+}
+
 void clear_color_buffer(uint32_t color) {
 	for (int y = 0; y < SCREEN_HEIGHT; y++) {
 		for (int x = 0; x < SCREEN_WIDTH; x++) {
@@ -96,6 +120,7 @@ void render(void) {
 	SDL_RenderClear(renderer);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 
+	draw_grid();
 	render_color_buffer();
 	clear_color_buffer(0xFFFFFF00);
 
