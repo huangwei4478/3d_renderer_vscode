@@ -38,7 +38,6 @@ bool initialize_window(void) {
 		fprintf(stderr, "Error creating SDL renderer.\n");
 		return false;
 	}
-
 	return true;
 }
 
@@ -51,7 +50,7 @@ void setup(void) {
 											 SCREEN_HEIGHT);
 }
 
-bool process_input(void) {
+void process_input(void) {
 	SDL_Event event;
 
 	while (SDL_PollEvent(&event)) {
@@ -71,8 +70,6 @@ bool process_input(void) {
 			}
 		}
 	}
-	
-	return true;
 }
 
 void update(void) {
@@ -118,7 +115,7 @@ int main(void) {
 	setup();
 
 	while (is_running) {
-		is_running = process_input();
+		process_input();
 		update();
 		render();
 	}
