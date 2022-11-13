@@ -1,119 +1,128 @@
 //Using SDL and standard IO
 #include "SDL.h"
 #include <stdio.h>
+#include <stdint.h>
 #include <stdbool.h>
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
-//Starts up SDL and creates window
-bool init();
+bool is_running = false;
+SDL_Window* window = NULL;
+SDL_Renderer* renderer = NULL;
 
-//Loads media
-bool loadMedia();
+uint32_t* color_buffer = NULL;
+SDL_Texture* color_buffer_texture = NULL;
 
-//Frees media and shuts down SDL
-void close();
+bool initialize_window(void) {
+	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+		fprintf(stderr, "failed to initialize SDL2.");
+		return false;
+	}
 
-//The window we'll be rendering to
-SDL_Window* gWindow = NULL;
+	window = SDL_CreateWindow("3D Graphics Programming", 
+								   SDL_WINDOWPOS_CENTERED, 
+								   SDL_WINDOWPOS_CENTERED,
+								   SCREEN_WIDTH,
+								   SCREEN_HEIGHT,
+								   0);
+
+	if (window == NULL) {
+		fprintf(stderr, "Error creating SDL window.\n");
+		return false;
+	}	
+
+	renderer = SDL_CreateRenderer(window, -1, 0);
+	if (renderer == NULL) {
+		fprintf(stderr, "Error creating SDL renderer.\n");
+		return false;
+	}
+
+	return true;
+}
+
+void setup(void) {
+	color_buffer = (uint32_t *)malloc(SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(uint32_t));
+	color_buffer_texture = SDL_CreateTexture(renderer,
+											 SDL_PIXELFORMAT_ARGB8888,
+											 SDL_TEXTUREACCESS_STREAMING,
+											 SCREEN_WIDTH,
+											 SCREEN_HEIGHT);
+}
+
+bool process_input(void) {
+	SDL_Event event;
+
+	while (SDL_PollEvent(&event)) {
+		switch (event.type) {
+			case SDL_QUIT: {				// click "x" button of the window
+				is_running = false;
+				break;
+			}
+			case SDL_KEYDOWN: {
+				if (event.key.keysym.sym == SDLK_ESCAPE) {
+					is_running = false;
+				}
+				break;
+			}
+			default: {
+				break;
+			}
+		}
+	}
 	
-//The surface contained by the window
-SDL_Surface* gScreenSurface = NULL;
-
-//The image we will load and show on the screen
-SDL_Surface* gHelloWorld = NULL;
-
-bool init()
-{
-	//Initialization flag
-	bool success = true;
-
-	//Initialize SDL
-	if( SDL_Init( SDL_INIT_VIDEO ) < 0 )
-	{
-		printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
-		success = false;
-	}
-	else
-	{
-		//Create window
-		gWindow = SDL_CreateWindow( "SDL Tutorial", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
-		if( gWindow == NULL )
-		{
-			printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
-			success = false;
-		}
-		else
-		{
-			//Get window surface
-			gScreenSurface = SDL_GetWindowSurface( gWindow );
-		}
-	}
-
-	return success;
+	return true;
 }
 
-bool loadMedia()
-{
-	//Loading success flag
-	bool success = true;
-
-	//Load splash image
-	gHelloWorld = SDL_LoadBMP( "assets/hello_world.bmp" );
-	if( gHelloWorld == NULL )
-	{
-		printf( "Unable to load image %s! SDL Error: %s\n", "assets/hello_world.bmp", SDL_GetError() );
-		success = false;
-	}
-
-	return success;
+void update(void) {
+	// TODO:
 }
 
-void close()
-{
-	//Deallocate surface
-	SDL_FreeSurface( gHelloWorld );
-	gHelloWorld = NULL;
+void clear_color_buffer(uint32_t color) {
+	for (int y = 0; y < SCREEN_HEIGHT; y++) {
+		for (int x = 0; x < SCREEN_WIDTH; x++) {
+			color_buffer[y * SCREEN_WIDTH + x] = color;
+		}
+	}
+}
 
-	//Destroy window
-	SDL_DestroyWindow( gWindow );
-	gWindow = NULL;
+void render_color_buffer() {
+	SDL_UpdateTexture(color_buffer_texture,
+					  NULL,
+					  color_buffer,
+					  (int)(SCREEN_WIDTH * sizeof(uint32_t)));
+	SDL_RenderCopy(renderer, color_buffer_texture, NULL, NULL);
+}
 
-	//Quit SDL subsystems
+void render(void) {
+	SDL_RenderClear(renderer);
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+
+	render_color_buffer();
+	clear_color_buffer(0xFFFFFF00);
+
+	SDL_RenderPresent(renderer);
+}
+
+void destroy_window(void) {
+	free(color_buffer);
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
 	SDL_Quit();
 }
 
-int main( int argc, char* args[] )
-{
-	//Start up SDL and create window
-	if( !init() )
-	{
-		printf( "Failed to initialize!\n" );
-	}
-	else
-	{
-		//Load media
-		if( !loadMedia() )
-		{
-			printf( "Failed to load media!\n" );
-		}
-		else
-		{
-			//Apply the image
-			SDL_BlitSurface( gHelloWorld, NULL, gScreenSurface, NULL );
-			
-			//Update the surface
-			SDL_UpdateWindowSurface( gWindow );
+int main(void) {
+	is_running = initialize_window();	
 
-            //Hack to get window to stay up
-            SDL_Event e; bool quit = false; while( quit == false ){ while( SDL_PollEvent( &e ) ){ if( e.type == SDL_QUIT ) quit = true; } }
-		}
+	setup();
+
+	while (is_running) {
+		is_running = process_input();
+		update();
+		render();
 	}
 
-	//Free resources and close SDL
-	close();
-
+	destroy_window();
 	return 0;
 }
