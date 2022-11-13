@@ -47,6 +47,10 @@ bool initialize_window(void) {
 	return true;
 }
 
+void draw_pixel(int x, int y, uint32_t color) {
+	SDL_assert(x >= 0 && y >= 0 && x < SCREEN_WIDTH && y < SCREEN_HEIGHT);
+	color_buffer[SCREEN_WIDTH * y + x] = color;
+}
 
 void draw_grid(void) {
 	// Exercise: Draw a background grid that fills the entire window
@@ -57,17 +61,17 @@ void draw_grid(void) {
 	for (int y = 0; y < SCREEN_HEIGHT; y++) {
 		for (int x = 0; x < SCREEN_WIDTH; x++) {
 			if (x % grid_wh == 0 || y % grid_wh == 0) {
-				color_buffer[y * SCREEN_WIDTH + x] = 0xFF000000;
+				draw_pixel(x, y, 0xFF000000);
 			}
 		}
 	}
 }
 
 void draw_rect(int x, int y, int width, int height, uint32_t color) {
-	if (x < 0 || y < 0 || x + width >= SCREEN_WIDTH || y + height >= SCREEN_HEIGHT) { return; }
+	SDL_assert(x < 0 || y < 0 || x + width >= SCREEN_WIDTH || y + height >= SCREEN_HEIGHT);
 	for (int _y = y; _y < y + height; _y++) {
 		for (int _x = x; _x < x + width; _x++) {
-			color_buffer[_y * SCREEN_WIDTH + _x] = color;
+			draw_pixel(x, y, color);
 		}
 	}
 }
@@ -75,7 +79,7 @@ void draw_rect(int x, int y, int width, int height, uint32_t color) {
 void clear_color_buffer(uint32_t color) {
 	for (int y = 0; y < SCREEN_HEIGHT; y++) {
 		for (int x = 0; x < SCREEN_WIDTH; x++) {
-			color_buffer[y * SCREEN_WIDTH + x] = color;
+			draw_pixel(x, y, color);
 		}
 	}
 }
