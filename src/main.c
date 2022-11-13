@@ -45,7 +45,8 @@ bool initialize_window(void) {
 		return false;
 	}
 
-	SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
+	// This line would make my macbook system-hang.
+	//SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
 
 	return true;
 }
@@ -100,6 +101,15 @@ void draw_grid(void) {
 	}
 }
 
+void draw_rect(int x, int y, int width, int height, uint32_t color) {
+	if (x < 0 || y < 0 || x + width >= SCREEN_WIDTH || y + height >= SCREEN_HEIGHT) { return; }
+	for (int _y = y; _y < y + height; _y++) {
+		for (int _x = x; _x < x + width; _x++) {
+			color_buffer[_y * SCREEN_WIDTH + _x] = color;
+		}
+	}
+}
+
 void clear_color_buffer(uint32_t color) {
 	for (int y = 0; y < SCREEN_HEIGHT; y++) {
 		for (int x = 0; x < SCREEN_WIDTH; x++) {
@@ -120,7 +130,8 @@ void render(void) {
 	SDL_RenderClear(renderer);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 
-	draw_grid();
+	//draw_grid();
+	draw_rect(100, 100, 100, 150, 0xFFFF0000);
 	render_color_buffer();
 	clear_color_buffer(0xFFFFFF00);
 
